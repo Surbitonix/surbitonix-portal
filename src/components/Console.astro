@@ -1,0 +1,380 @@
+---
+// Interactive mini-terminal easter egg. Vanilla TS, no dependencies.
+// Type `help` to see what it can do.
+---
+
+<section class="console" aria-label="Interactive terminal">
+  <div class="console-bar">
+    <span class="tl-dot tl-red" aria-hidden="true"></span>
+    <span class="tl-dot tl-amber" aria-hidden="true"></span>
+    <span class="tl-dot tl-green" aria-hidden="true"></span>
+    <span class="console-title">visitor@surbitonix: ~</span>
+  </div>
+  <div class="console-body" id="console" tabindex="-1">
+    <div class="console-out" id="console-out"></div>
+    <div class="console-line">
+      <span class="console-ps1">
+        <span class="ps1-user">visitor@surbitonix</span>:<span class="ps1-path"
+          >~</span
+        >$</span
+      >
+      <input
+        id="console-input"
+        class="console-input"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-label="Terminal command input"
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .console {
+    margin: 0.75rem auto 0;
+    width: 100%;
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #08090d;
+    text-align: left;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.4);
+  }
+
+  .console-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.85rem;
+    background: #14161d;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tl-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .tl-red {
+    background: #ff5f57;
+  }
+  .tl-amber {
+    background: #febc2e;
+  }
+  .tl-green {
+    background: #28c840;
+  }
+
+  .console-title {
+    margin-left: 0.4rem;
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .console-body {
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 0.9rem 1rem 1.1rem;
+    height: 240px;
+    overflow-y: auto;
+    cursor: text;
+    color: var(--fg);
+    outline: none;
+  }
+
+  @media (min-width: 880px) {
+    .console-body {
+      height: 360px;
+    }
+  }
+
+  .console-out {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .console-row {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .console-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .console-ps1 {
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .ps1-user {
+    color: #4ade80;
+  }
+  .ps1-path {
+    color: var(--accent-2);
+  }
+
+  .console-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--fg);
+    font: inherit;
+    caret-color: var(--accent-2);
+  }
+
+  .c-cmd {
+    color: var(--fg);
+  }
+  .c-muted {
+    color: var(--muted);
+  }
+  .c-accent {
+    color: var(--accent-2);
+  }
+  .c-green {
+    color: #4ade80;
+  }
+  .c-amber {
+    color: #febc2e;
+  }
+  .c-link {
+    color: var(--accent-2);
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  type CmdFn = (args: string[]) => void;
+
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function initConsole() {
+    const body = document.getElementById('console');
+    const out = document.getElementById('console-out');
+    const input = document.getElementById(
+      'console-input'
+    ) as HTMLInputElement | null;
+    if (!body || !out || !input) return;
+
+    const ps1 =
+      '<span class="ps1-user">visitor@surbitonix</span>:<span class="ps1-path">~</span>$';
+
+    const history: string[] = [];
+    let histIdx = 0;
+
+    const projects: Record<string, { url: string; live: boolean }> = {
+      fxorbit: { url: 'https://fxorbit.surbitonix.com', live: false },
+      jyra: { url: 'https://jyra.surbitonix.com', live: false },
+    };
+
+    function print(html = '', cls = '') {
+      const row = document.createElement('div');
+      row.className = 'console-row' + (cls ? ' ' + cls : '');
+      row.innerHTML = html;
+      out!.appendChild(row);
+    }
+
+    const scrollDown = () => {
+      body!.scrollTop = body!.scrollHeight;
+    };
+
+    const commands: Record<string, CmdFn> = {
+      help() {
+        print('available commands:', 'c-muted');
+        print(
+          '  <span class="c-accent">help</span>      show this list\n' +
+            '  <span class="c-accent">ls</span>        list what&rsquo;s here\n' +
+            '  <span class="c-accent">about</span>     who is surbitonix\n' +
+            '  <span class="c-accent">projects</span>  list projects\n' +
+            '  <span class="c-accent">cd</span> &lt;name&gt;  open a project (try: cd jyra)\n' +
+            '  <span class="c-accent">contact</span>   how to reach me\n' +
+            '  <span class="c-accent">neofetch</span>  system info\n' +
+            '  <span class="c-accent">whoami</span>    spoiler: it&rsquo;s you\n' +
+            '  <span class="c-accent">date</span>      current time\n' +
+            '  <span class="c-accent">clear</span>     wipe the screen'
+        );
+      },
+      ls() {
+        print('fxorbit/   jyra/   about.txt   contact.txt', 'c-accent');
+      },
+      about() {
+        print(
+          'surbitonix — trading engineer. builds tools, breaks things,\n' +
+            'and ships the occasional chaotic repository.'
+        );
+      },
+      projects() {
+        Object.entries(projects).forEach(([name, p]) => {
+          const tag = p.live
+            ? '<span class="c-green">[live]</span>'
+            : '<span class="c-amber">[soon]</span>';
+          print(
+            `  <span class="c-accent">${name}</span>  ${tag}  <span class="c-muted">${p.url}</span>`
+          );
+        });
+      },
+      cd(args) {
+        const name = (args[0] || '').replace(/\/$/, '').toLowerCase();
+        if (!name) {
+          print('cd: usage: cd &lt;project&gt; (try: cd jyra)', 'c-muted');
+          return;
+        }
+        const p = projects[name];
+        if (!p) {
+          print(`cd: no such project: ${escapeHtml(name)}`, 'c-amber');
+          return;
+        }
+        if (p.live) {
+          print(`opening ${name}&hellip;`, 'c-green');
+          window.setTimeout(() => window.location.assign(p.url), 450);
+        } else {
+          print(
+            `${name} is still booting&hellip; <span class="c-amber">[soon]</span>`
+          );
+        }
+      },
+      contact() {
+        print(
+          'email     <a class="c-link" href="mailto:hello@surbitonix.com">hello@surbitonix.com</a>'
+        );
+        print(
+          'linkedin  <a class="c-link" href="https://www.linkedin.com/in/manuel-m-672bb35/" target="_blank" rel="noopener noreferrer">manuel-m</a>'
+        );
+        print(
+          'github    <a class="c-link" href="https://github.com/Surbitonix" target="_blank" rel="noopener noreferrer">@Surbitonix</a>'
+        );
+      },
+      neofetch() {
+        print(
+          '<span class="c-accent">surbitonix@portal</span>\n' +
+            '<span class="c-muted">-----------------</span>\n' +
+            '<span class="c-muted">os    </span>  surbitonixOS (rolling)\n' +
+            '<span class="c-muted">shell </span>  zsh 5.9\n' +
+            '<span class="c-muted">editor</span>  cursor / vim\n' +
+            '<span class="c-muted">stack </span>  ts · astro · python · rust-curious\n' +
+            '<span class="c-muted">uptime</span>  &infin;\n' +
+            '<span class="c-muted">status</span>  <span class="c-green">shipping</span>'
+        );
+      },
+      whoami() {
+        print('a curious visitor with excellent taste.');
+      },
+      date() {
+        print(new Date().toString());
+      },
+      clear() {
+        out!.innerHTML = '';
+      },
+    };
+
+    function run(raw: string) {
+      const trimmed = raw.trim();
+      if (!trimmed) return;
+      const parts = trimmed.split(/\s+/);
+      const cmd = parts[0] ?? '';
+      const args = parts.slice(1);
+      const key = cmd.toLowerCase();
+
+      if (key === 'echo') {
+        print(escapeHtml(args.join(' ')));
+        return;
+      }
+      if (key === 'sudo') {
+        if (args[0]?.toLowerCase() === 'hire-me') {
+          print('[sudo] password: <span class="c-muted">••••••••</span>');
+          print('access granted. excellent decision.', 'c-green');
+          print(
+            '→ <a class="c-link" href="https://www.linkedin.com/in/manuel-m-672bb35/" target="_blank" rel="noopener noreferrer">linkedin</a> · <a class="c-link" href="mailto:hello@surbitonix.com">email</a>'
+          );
+          return;
+        }
+        print(`${escapeHtml(args[0] || '')}: permission denied (nice try).`, 'c-amber');
+        return;
+      }
+      if (key === 'cat') {
+        const f = (args[0] || '').toLowerCase();
+        if (f === 'about.txt') {
+          commands.about!([]);
+          return;
+        }
+        if (f === 'contact.txt') {
+          commands.contact!([]);
+          return;
+        }
+        print(`cat: ${escapeHtml(args[0] || '')}: no such file`, 'c-amber');
+        return;
+      }
+      if (key === 'rm' && args.includes('-rf')) {
+        print('nice try. this site is load-bearing.', 'c-amber');
+        return;
+      }
+
+      const fn = commands[key];
+      if (fn) fn(args);
+      else
+        print(
+          `command not found: ${escapeHtml(cmd)} — type <span class="c-accent">help</span>`,
+          'c-amber'
+        );
+    }
+
+    function submit() {
+      const raw = input!.value;
+      print(`${ps1} <span class="c-cmd">${escapeHtml(raw)}</span>`);
+      if (raw.trim()) history.push(raw);
+      histIdx = history.length;
+      input!.value = '';
+      run(raw);
+      scrollDown();
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submit();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx > 0) {
+          histIdx--;
+          input!.value = history[histIdx] ?? '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx < history.length) {
+          histIdx++;
+          input!.value = history[histIdx] ?? '';
+        }
+      } else if (e.key === 'l' && e.ctrlKey) {
+        e.preventDefault();
+        out!.innerHTML = '';
+      }
+    });
+
+    body.addEventListener('click', () => input!.focus());
+
+    print(
+      'surbitonix hell — type <span class="c-accent">help</span> to get started.',
+      'c-muted'
+    );
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initConsole);
+  } else {
+    initConsole();
+  }
+</script>

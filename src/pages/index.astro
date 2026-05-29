@@ -1,10 +1,43 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Intro from '../components/Intro.astro';
+import Console from '../components/Console.astro';
+
+// Projects shown as tiles. Flip `status` to 'live' once each subdomain
+// is deployed. Swap `note` for your own (humorous) tagline anytime.
+const projects = [
+  {
+    label: 'FX Orbit',
+    href: 'https://fxorbit.surbitonix.com',
+    note: 'Give the KUBE to the Masses',
+    status: 'soon',
+  },
+  {
+    label: 'Jyra',
+    href: 'https://jyra.surbitonix.com',
+    // Pun: most of continental Europe says "J-ai-ra"; it's actually "J-ee-ra".
+    note: 'Since everyone calls it J<em>ai</em>ra, here you have it (your J<em>ai</em>ra)&hellip; but the real one is called J<em>ee</em>ra.',
+    status: 'soon',
+  },
+];
 
 const links = [
-  { label: 'Email', href: 'mailto:hello@surbitonix.com', note: 'Get in touch' },
-  { label: 'GitHub', href: 'https://github.com/Surbitonix', note: 'Code & projects' },
+  {
+    label: 'Email',
+    href: 'mailto:hello@surbitonix.com',
+    note: 'I answer every now and then. But i always answer....eventually...',
+  },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/Surbitonix',
+    note: 'Your life is more exciting than this... you deserve better',
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/manuel-m-672bb35/',
+    note: 'Humble Bragging Time',
+    wide: true,
+  },
 ];
 ---
 
@@ -20,17 +53,68 @@ const links = [
         Trading engineer. Building tools, experiments, and the occasional
         <s>well-structured</s> chaotic repository.
       </p>
+    </section>
 
+    <section class="workspace">
+      <div class="panel panel-tiles">
+      <span class="section-label">
+        <span class="prompt-path">~/projects</span>
+        <span class="prompt-sym">$</span>
+        <span class="prompt-cmd">ls</span>
+      </span>
+      <div class="links">
+        {
+          projects.map((project) => (
+            <a
+              class="card"
+              href={project.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span class="card-top">
+                <span class="card-label">{project.label}</span>
+                <span class={`pill ${project.status === 'live' ? 'pill-live' : ''}`}>
+                  {project.status === 'live' ? 'live' : 'soon'}
+                </span>
+              </span>
+              <span class="card-note" set:html={project.note} />
+            </a>
+          ))
+        }
+      </div>
+
+      <span class="section-label">
+        <span class="prompt-path">~/connect</span>
+        <span class="prompt-sym">$</span>
+        <span class="prompt-cmd">ping</span>
+        <span class="section-sub">— you dont have to</span>
+      </span>
       <div class="links">
         {
           links.map((link) => (
-            <a class="card" href={link.href} target="_blank" rel="noopener noreferrer">
+            <a
+              class={`card ${link.wide ? 'card-wide' : ''}`}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span class="card-label">{link.label}</span>
               <span class="card-note">{link.note}</span>
             </a>
           ))
         }
       </div>
+      </div>
+
+      <aside class="panel panel-console">
+      <span class="section-label">
+        <span class="prompt-path">~</span>
+        <span class="prompt-sym">$</span>
+        <span class="prompt-cmd">./shell</span>
+        <span class="section-sub">— yes, it actually works</span>
+      </span>
+      <Console />
+      </aside>
     </section>
 
     <footer>
@@ -48,9 +132,9 @@ const links = [
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 3rem 2rem;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
   }
 
   main::before {
@@ -140,11 +224,73 @@ const links = [
     text-decoration-thickness: 1.5px;
   }
 
-  .links {
-    margin-top: 2.5rem;
+  .workspace {
+    width: 100%;
+    max-width: 640px;
+    margin: 2.5rem auto 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.75rem;
+    text-align: left;
+  }
+
+  .panel {
+    min-width: 0;
+  }
+
+  .panel > .section-label:first-child {
+    margin-top: 0;
+  }
+
+    @media (min-width: 880px) {
+    .workspace {
+      max-width: 1040px;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      gap: 2.25rem;
+    }
+  }
+
+  .section-label {
+    display: block;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .prompt-path {
+    color: var(--accent-2);
+  }
+
+  .prompt-sym {
+    color: #4ade80;
+    margin: 0 0.1rem 0 0.05rem;
+  }
+
+  .prompt-cmd {
+    color: var(--fg);
+    opacity: 0.85;
+  }
+
+  .section-sub {
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--muted);
+    opacity: 0.75;
+  }
+
+  .links {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+  }
+
+  @media (max-width: 30rem) {
+    .links {
+      grid-template-columns: 1fr;
+    }
   }
 
   .card {
@@ -166,6 +312,21 @@ const links = [
     transform: translateY(-2px);
   }
 
+  .card-wide {
+    grid-column: 1 / -1;
+    justify-self: center;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
   .card-label {
     font-weight: 600;
   }
@@ -175,9 +336,25 @@ const links = [
     color: var(--muted);
   }
 
+  .pill {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.12rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .pill-live {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.4);
+  }
+
   footer {
-    position: absolute;
-    bottom: 1.5rem;
+    margin-top: 3rem;
     display: flex;
     gap: 0.5rem;
     font-size: 0.85rem;
