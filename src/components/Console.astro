@@ -159,6 +159,9 @@
 <script>
   type CmdFn = (args: string[]) => void;
 
+  // Output is injected via innerHTML so we can colorize it, which means any
+  // raw user text MUST be escaped first — otherwise typing `<img onerror=...>`
+  // would execute. Always run echoed user input through this.
   const escapeHtml = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -173,9 +176,13 @@
     const ps1 =
       '<span class="ps1-user">visitor@surbitonix</span>:<span class="ps1-path">~</span>$';
 
+    // Command history for the ↑/↓ keys. `histIdx` is a cursor into it;
+    // it sits at `history.length` (one past the end) when not browsing.
     const history: string[] = [];
     let histIdx = 0;
 
+    // Keep `live` in sync with each tile's `status` in index.astro. While
+    // false, `cd <name>` just prints "[soon]"; flip to true to navigate.
     const projects: Record<string, { url: string; live: boolean }> = {
       fxorbit: { url: 'https://fxorbit.surbitonix.com', live: false },
       jyra: { url: 'https://jyra.surbitonix.com', live: false },
@@ -284,6 +291,9 @@
     function run(raw: string) {
       const trimmed = raw.trim();
       if (!trimmed) return;
+      // Split "cd jyra" into the command ("cd") and its args (["jyra"]).
+      // The handful of commands that take arguments (echo/sudo/cat/cd/rm) are
+      // special-cased below; everything else is a simple lookup in `commands`.
       const parts = trimmed.split(/\s+/);
       const cmd = parts[0] ?? '';
       const args = parts.slice(1);
@@ -334,9 +344,11 @@
 
     function submit() {
       const raw = input!.value;
+      // Echo the prompt + what was typed, then run it. `escapeHtml` matters
+      // here because `raw` is untrusted user input going into innerHTML.
       print(`${ps1} <span class="c-cmd">${escapeHtml(raw)}</span>`);
       if (raw.trim()) history.push(raw);
-      histIdx = history.length;
+      histIdx = history.length; // reset the ↑/↓ cursor to the newest entry
       input!.value = '';
       run(raw);
       scrollDown();

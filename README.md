@@ -33,14 +33,25 @@ npm run dev      # start the dev server at http://localhost:4321
 surbitonix-portal/
 ├── public/              # static assets (favicon, images)
 ├── src/
-│   ├── layouts/         # shared page shells
+│   ├── layouts/         # shared page shells + global CSS variables
 │   │   └── Layout.astro
+│   ├── components/      # reusable building blocks
+│   │   ├── Intro.astro      # cinematic entry animation
+│   │   └── Console.astro    # interactive mini-terminal
 │   └── pages/           # each .astro file = a route
-│       └── index.astro
+│       └── index.astro      # the landing page
+├── docs/
+│   └── how-it-works.md  # deep dive: Astro intro + how the animations work
 ├── astro.config.mjs
 ├── tsconfig.json
 └── package.json
 ```
+
+## How it works / learning the codebase
+
+New to Astro, or want to understand the entry animation, the typewriter brand,
+and the interactive terminal? See **[docs/how-it-works.md](docs/how-it-works.md)** —
+a walkthrough written to learn from, with pointers to the real code.
 
 ## Deployment
 

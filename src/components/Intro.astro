@@ -8,8 +8,9 @@
 // reduced motion.
 ---
 
-<!-- Runs before paint: skip the intro only for users who prefer
-     reduced motion. Otherwise it plays on every page load. -->
+<!-- `is:inline` keeps this script inline & unbundled so it runs synchronously
+     during parse, BEFORE the overlay paints. That lets reduced-motion users
+     skip the intro with no flash of the animation. -->
 <script is:inline>
   (function () {
     try {
@@ -208,6 +209,9 @@
     const out = document.getElementById('term-out');
     const skipBtn = intro.querySelector<HTMLElement>('[data-skip]');
 
+    // `finished` guards against the intro ending twice (e.g. auto-advance
+    // racing a manual skip). Every timeout id is tracked in `timers` so that
+    // finish() can cancel any pending waits the moment the user skips.
     let finished = false;
     const timers: number[] = [];
     const wait = (ms: number) =>
@@ -218,6 +222,9 @@
       finished = true;
       timers.forEach((t) => clearTimeout(t));
       intro!.classList.add('fade-out');
+      // Tell the landing page the reveal has started, so it can
+      // type out the "surbitonix" brand as the overlay fades.
+      document.dispatchEvent(new CustomEvent('intro:reveal'));
       window.setTimeout(() => {
         html.classList.add('intro-done');
       }, 800);
@@ -258,6 +265,8 @@
     }
 
     async function sequence() {
+      // After every `await`, bail if the user skipped while we were waiting —
+      // otherwise the sequence would keep mutating the DOM behind the fade.
       // Stage B: hold the cinematic shot for a slow, deliberate beat
       await wait(3500);
       if (finished) return;
@@ -287,6 +296,8 @@
     sequence();
   }
 
+  // Module scripts are deferred, so the DOM is usually ready by the time this
+  // runs — but guard for the rare "still loading" case just in case.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', runIntro);
   } else {

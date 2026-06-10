@@ -47,8 +47,23 @@ const links = [
     <section class="hero">
       <span class="badge">welcome to the future</span>
       <h1>
-        <span class="grad">surbitonix</span><span class="cursor" aria-hidden="true">_</span>
+        <span class="grad" id="brand" data-text="surbitonix">surbitonix</span
+        ><span class="cursor" aria-hidden="true">_</span>
       </h1>
+      <script is:inline>
+        // Clear the brand text pre-paint so it can "type" in on reveal.
+        // Reduced-motion users keep the full word (no typing).
+        (function () {
+          try {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+              return;
+            var b = document.getElementById('brand');
+            if (b) b.textContent = '';
+          } catch (e) {
+            /* leave the word as-is */
+          }
+        })();
+      </script>
       <p class="tagline">
         Trading engineer. Building tools, experiments, and the occasional
         <s>well-structured</s> chaotic repository.
@@ -124,6 +139,55 @@ const links = [
     </footer>
   </main>
 </Layout>
+
+<script>
+  // Types out the "surbitonix" brand once the intro reveals the page,
+  // leaving the blinking "_" cursor after it.
+  function setupBrandTypewriter() {
+    const html = document.documentElement;
+    const brand = document.getElementById('brand');
+    if (!brand) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const word = brand.dataset.text || 'surbitonix';
+    let started = false;
+
+    function type() {
+      if (started) return;
+      started = true;
+      let i = 0;
+      const step = () => {
+        brand.textContent = word.slice(0, i);
+        if (i < word.length) {
+          i++;
+          window.setTimeout(step, 150);
+        }
+      };
+      step();
+    }
+
+    // If there's no intro to wait for (or it already finished), type now.
+    const introEl = document.getElementById('intro');
+    if (!introEl || html.classList.contains('intro-done')) {
+      type();
+      return;
+    }
+
+    // Otherwise type as the intro begins revealing the landing page.
+    document.addEventListener('intro:reveal', () => window.setTimeout(type, 200), {
+      once: true,
+    });
+
+    // Safety net well beyond the longest the intro can run.
+    window.setTimeout(type, 30000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupBrandTypewriter);
+  } else {
+    setupBrandTypewriter();
+  }
+</script>
 
 <style>
   main {
