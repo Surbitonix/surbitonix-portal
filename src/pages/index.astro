@@ -10,7 +10,7 @@ const projects = [
     label: 'FX Orbit',
     href: 'https://fxorbit.surbitonix.com',
     note: 'Give the KUBE to the Masses',
-    status: 'soon',
+    status: 'beta',
   },
   {
     label: 'Jyra',
@@ -88,9 +88,7 @@ const links = [
             >
               <span class="card-top">
                 <span class="card-label">{project.label}</span>
-                <span class={`pill ${project.status === 'live' ? 'pill-live' : ''}`}>
-                  {project.status === 'live' ? 'live' : 'soon'}
-                </span>
+                <span class={`pill pill-${project.status}`}>{project.status}</span>
               </span>
               <span class="card-note" set:html={project.note} />
             </a>
@@ -415,6 +413,11 @@ const links = [
   .pill-live {
     color: #4ade80;
     border-color: rgba(74, 222, 128, 0.4);
+  }
+
+  .pill-beta {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.4);
   }
 
   footer {

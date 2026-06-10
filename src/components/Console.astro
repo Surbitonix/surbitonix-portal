@@ -181,11 +181,12 @@
     const history: string[] = [];
     let histIdx = 0;
 
-    // Keep `live` in sync with each tile's `status` in index.astro. While
-    // false, `cd <name>` just prints "[soon]"; flip to true to navigate.
-    const projects: Record<string, { url: string; live: boolean }> = {
-      fxorbit: { url: 'https://fxorbit.surbitonix.com', live: false },
-      jyra: { url: 'https://jyra.surbitonix.com', live: false },
+    // Keep `status` in sync with each tile's `status` in index.astro.
+    // `ready` controls whether `cd <name>` navigates (true once deployed,
+    // even in beta); otherwise it just prints the status tag.
+    const projects: Record<string, { url: string; status: string; ready: boolean }> = {
+      fxorbit: { url: 'https://fxorbit.surbitonix.com', status: 'beta', ready: true },
+      jyra: { url: 'https://jyra.surbitonix.com', status: 'soon', ready: false },
     };
 
     function print(html = '', cls = '') {
@@ -226,9 +227,8 @@
       },
       projects() {
         Object.entries(projects).forEach(([name, p]) => {
-          const tag = p.live
-            ? '<span class="c-green">[live]</span>'
-            : '<span class="c-amber">[soon]</span>';
+          const color = p.status === 'live' ? 'c-green' : 'c-amber';
+          const tag = `<span class="${color}">[${p.status}]</span>`;
           print(
             `  <span class="c-accent">${name}</span>  ${tag}  <span class="c-muted">${p.url}</span>`
           );
@@ -245,12 +245,12 @@
           print(`cd: no such project: ${escapeHtml(name)}`, 'c-amber');
           return;
         }
-        if (p.live) {
+        if (p.ready) {
           print(`opening ${name}&hellip;`, 'c-green');
           window.setTimeout(() => window.location.assign(p.url), 450);
         } else {
           print(
-            `${name} is still booting&hellip; <span class="c-amber">[soon]</span>`
+            `${name} is still booting&hellip; <span class="c-amber">[${p.status}]</span>`
           );
         }
       },
