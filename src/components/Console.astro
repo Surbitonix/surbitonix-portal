@@ -185,7 +185,7 @@
     // `ready` controls whether `cd <name>` navigates (true once deployed,
     // even in beta); otherwise it just prints the status tag.
     const projects: Record<string, { url: string; status: string; ready: boolean }> = {
-      fxorbit: { url: 'https://fxorbit.surbitonix.com', status: 'beta', ready: true },
+      kubefx: { url: 'https://kubefx.surbitonix.com', status: 'beta', ready: true },
       jyra: { url: 'https://jyra.surbitonix.com', status: 'soon', ready: false },
     };
 
@@ -217,7 +217,7 @@
         );
       },
       ls() {
-        print('fxorbit/   jyra/   about.txt   contact.txt', 'c-accent');
+        print('kubefx/   jyra/   about.txt   contact.txt', 'c-accent');
       },
       about() {
         print(

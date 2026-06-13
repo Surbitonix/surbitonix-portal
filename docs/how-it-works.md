@@ -224,7 +224,7 @@ A fake-but-real shell. The structure:
 - **Output is built with small `print(html)` calls** that append a `<div>` to
   the output area, then auto-scroll to the bottom.
 
-`cd fxorbit` / `cd jyra` check a `projects` map's `live` flag: while `false`
+`cd kubefx` / `cd jyra` check a `projects` map's `live` flag: while `false`
 they print `[soon]`; once you flip them to `true`, they'll `window.location`
 to the subdomain. (Keep that flag in sync with the tile `status` in
 `index.astro`.)
