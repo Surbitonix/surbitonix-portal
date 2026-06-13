@@ -3,6 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import Intro from '../components/Intro.astro';
 import Console from '../components/Console.astro';
 
+// Portal release tag — bump when merging to main (next merge → v0.0.8).
+const portalVersion = 'v0.0.8';
+
 // Projects shown as tiles. Flip `status` to 'live' once each subdomain
 // is deployed. Swap `note` for your own (humorous) tagline anytime.
 const projects = [
@@ -10,7 +13,8 @@ const projects = [
     label: 'KubeFX',
     href: 'https://kubefx.surbitonix.com',
     note: 'AI Powered FX Tech Demonstrator - Trade the News like a Pro',
-    status: 'beta',
+    status: 'v2.7.0',
+    pill: 'version',
   },
   {
     label: 'Jyra',
@@ -88,9 +92,20 @@ const links = [
             >
               <span class="card-top">
                 <span class="card-label">{project.label}</span>
-                <span class={`pill pill-${project.status}`}>{project.status}</span>
+                {
+                  project.pill !== 'version' && (
+                    <span class={`pill pill-${project.pill ?? project.status}`}>
+                      {project.status}
+                    </span>
+                  )
+                }
               </span>
               <span class="card-note" set:html={project.note} />
+              {
+                project.pill === 'version' && (
+                  <span class="card-version">{project.status}</span>
+                )
+              }
             </a>
           ))
         }
@@ -131,9 +146,12 @@ const links = [
     </section>
 
     <footer>
-      <span>© {new Date().getFullYear()} surbitonix</span>
-      <span class="dot">·</span>
-      <span>surbitonix.com</span>
+      <div class="footer-line">
+        <span>© {new Date().getFullYear()} surbitonix</span>
+        <span class="dot">·</span>
+        <span>surbitonix.com</span>
+      </div>
+      <p class="portal-version">{portalVersion}</p>
     </footer>
   </main>
 </Layout>
@@ -274,6 +292,16 @@ const links = [
     }
   }
 
+  .portal-version {
+    margin: 0;
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    opacity: 0.7;
+  }
+
   .tagline {
     margin: 1.25rem auto 0;
     max-width: 32rem;
@@ -356,10 +384,11 @@ const links = [
   }
 
   .card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    padding: 1.1rem 1.25rem;
+    padding: 1.1rem 1.25rem 1.65rem;
     border: 1px solid var(--border);
     border-radius: 14px;
     background: var(--bg-soft);
@@ -398,6 +427,18 @@ const links = [
     color: var(--muted);
   }
 
+  .card-version {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.55rem;
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    opacity: 0.55;
+  }
+
   .pill {
     font-size: 0.62rem;
     font-weight: 600;
@@ -423,9 +464,17 @@ const links = [
   footer {
     margin-top: 3rem;
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.85rem;
     color: var(--muted);
+  }
+
+  .footer-line {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   .dot {
