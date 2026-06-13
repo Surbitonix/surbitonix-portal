@@ -2,11 +2,21 @@
 interface Props {
   title?: string;
   description?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogUrl?: string;
+  ogImage?: string;
 }
 
+const site = 'https://surbitonix.com';
+
 const {
-  title = 'Surbitonix',
-  description = 'The personal portal of Surbitonix.',
+  title = 'surbitonix',
+  description = 'The personal portal of surbitonix.',
+  ogTitle = title,
+  ogDescription = description,
+  ogUrl = site,
+  ogImage = `${site}/og-image.png`,
 } = Astro.props;
 ---
 
@@ -16,6 +26,16 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={ogUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="surbitonix" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
