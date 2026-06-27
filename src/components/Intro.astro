@@ -38,6 +38,35 @@
   <button type="button" class="skip" data-skip>Skip &rsaquo;</button>
 </div>
 
+<!-- Pick the random backdrop SYNCHRONOUSLY here, before first paint, so the
+     page never shows the default image and then swaps (which caused a visible
+     flicker). This runs right after #intro is parsed, so .kenburns exists. -->
+<script is:inline>
+  (function () {
+    try {
+      var imgs = [
+        '/surbitonix-building.png',
+        '/intro/surbitonix-f1.png',
+        '/intro/surbitonix-plane.png',
+        '/intro/surbitonix-stadium.png',
+        '/intro/surbitonix-highway.png',
+        '/intro/surbitonix-times-square.png',
+        '/intro/surbitonix-metro.png',
+        '/intro/surbitonix-desert.png',
+        '/intro/surbitonix-rooftop.png',
+        '/intro/surbitonix-racetrack.png',
+      ];
+      var el = document.querySelector('.kenburns');
+      if (el) {
+        var pick = imgs[Math.floor(Math.random() * imgs.length)];
+        el.style.backgroundImage = "url('" + pick + "')";
+      }
+    } catch (e) {
+      /* keep the CSS fallback image */
+    }
+  })();
+</script>
+
 <style>
   /* Hide intro entirely once it's done (set on <html>). */
   :global(html.intro-done) #intro {
@@ -75,7 +104,9 @@
     opacity: 1;
   }
 
-  /* --- Stage B: cityscape with Ken Burns zoom --- */
+  /* --- Stage B: cityscape with Ken Burns zoom ---
+     The image is chosen at random per visit by the script below; this URL is
+     just a fallback if the script doesn't run. */
   .kenburns {
     position: absolute;
     inset: 0;

@@ -3,8 +3,27 @@ import Layout from '../layouts/Layout.astro';
 import Intro from '../components/Intro.astro';
 import Console from '../components/Console.astro';
 
-// Portal release tag — bump when merging to main (next merge → v0.0.8).
-const portalVersion = 'v0.0.8';
+// Portal release tag — bump when merging to main (next merge → v0.0.9).
+const portalVersion = 'v0.0.9';
+
+// CodeForge — umbrella learning portal. Each entry below is a *track* (a
+// subset): LinuxMaster ships first; SQL, Python, Bash, … follow. To add a
+// track, append to `tracks`. Give it an `href` + version `status` once its
+// site is live; leave `href` off (status: 'soon') for a not-yet-built track.
+const codeforge = {
+  label: 'CodeForge',
+    note: 'Interactive learning portal for trading engineers — build real muscle memory across Linux, Bash, Python &amp; more.',
+  tracks: [
+    {
+      label: 'LinuxMaster',
+      href: 'https://linuxmaster.surbitonix.com',
+      status: 'v0.3.8',
+    },
+    { label: 'FIX Protocol', status: 'soon' },
+    { label: 'Python', status: 'soon' },
+    { label: 'SQL', status: 'soon' },
+  ],
+};
 
 // Projects shown as tiles. Flip `status` to 'live' once each subdomain
 // is deployed. Swap `note` for your own (humorous) tagline anytime.
@@ -81,11 +100,48 @@ const links = [
     </section>
 
     <section class="workspace">
+      <div class="panel panel-codeforge">
+      <span class="section-label">
+        <span class="prompt-path">~/codeforge</span>
+        <span class="prompt-sym">$</span>
+        <span class="prompt-cmd">ls --tracks</span>
+      </span>
+      <div class="codeforge">
+        <div class="cf-head">
+          <span class="cf-prompt" aria-hidden="true">&gt;_</span>
+          <span class="cf-brand">{codeforge.label}</span>
+        </div>
+        <p class="cf-tag" set:html={codeforge.note} />
+        <div class="cf-tracks">
+          {
+            codeforge.tracks.map((track) =>
+              track.href ? (
+                <a
+                  class="cf-track"
+                  href={track.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span class="cf-track-label">{track.label}</span>
+                  <span class="cf-track-ver">{track.status}</span>
+                </a>
+              ) : (
+                <span class="cf-track cf-track-soon">
+                  <span class="cf-track-label">{track.label}</span>
+                  <span class="pill pill-soon">{track.status}</span>
+                </span>
+              )
+            )
+          }
+        </div>
+      </div>
+      </div>
+
       <div class="panel panel-tiles">
       <span class="section-label">
         <span class="prompt-path">~/projects</span>
         <span class="prompt-sym">$</span>
-        <span class="prompt-cmd">ls</span>
+        <span class="prompt-cmd">ls --projects</span>
       </span>
       <div class="links">
         {
@@ -327,6 +383,14 @@ const links = [
     display: grid;
     gap: 1.75rem;
     text-align: left;
+    /* Mobile: a single stacked column (codeforge → projects → console).
+       minmax(0, 1fr) lets the column shrink to the viewport so wide
+       content (e.g. the console) wraps instead of overflowing. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'cf'
+      'proj'
+      'console';
   }
 
   .panel {
@@ -337,12 +401,40 @@ const links = [
     margin-top: 0;
   }
 
-    @media (min-width: 880px) {
+  .panel-codeforge {
+    grid-area: cf;
+  }
+
+  .panel-tiles {
+    grid-area: proj;
+  }
+
+  .panel-console {
+    grid-area: console;
+  }
+
+  /* Two columns once there's room: CodeForge stacks over Projects on the
+     left, the console fills the right. */
+  @media (min-width: 880px) and (max-width: 1099px) {
     .workspace {
       max-width: 1040px;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        'cf console'
+        'proj console';
       align-items: start;
       gap: 2.25rem;
+    }
+  }
+
+  /* Three columns on wider desktops: codeforge | projects | console. */
+  @media (min-width: 1100px) {
+    .workspace {
+      max-width: 1240px;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 1.05fr);
+      grid-template-areas: 'cf proj console';
+      align-items: start;
+      gap: 2rem;
     }
   }
 
@@ -465,6 +557,86 @@ const links = [
   .pill-beta {
     color: #fbbf24;
     border-color: rgba(251, 191, 36, 0.4);
+  }
+
+  /* CodeForge — branded category card holding learning tracks (subsets). */
+  .codeforge {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-soft);
+    padding: 1.2rem 1.25rem 1.3rem;
+  }
+
+  .cf-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+  }
+
+  .cf-prompt {
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-weight: 700;
+    color: #4ade80;
+  }
+
+  .cf-brand {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .cf-tag {
+    margin: 0.5rem 0 1rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  .cf-tracks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .cf-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  a.cf-track:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .cf-track-soon {
+    opacity: 0.55;
+  }
+
+  .cf-track-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .cf-track-ver {
+    font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+      Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
   }
 
   footer {
