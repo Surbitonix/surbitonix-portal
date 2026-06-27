@@ -186,7 +186,8 @@
     // even in beta); otherwise it just prints the status tag.
     const projects: Record<string, { url: string; status: string; ready: boolean }> = {
       kubefx: { url: 'https://kubefx.surbitonix.com', status: 'v2.7.0', ready: true },
-      jyra: { url: 'https://jyra.surbitonix.com', status: 'beta', ready: true },
+      jyra: { url: 'https://jyra.surbitonix.com', status: 'soon', ready: false },
+      linuxmaster: { url: 'https://linuxmaster.surbitonix.com', status: 'v0.3.8', ready: true },
     };
 
     function print(html = '', cls = '') {
@@ -205,7 +206,7 @@
         print('available commands:', 'c-muted');
         print(
           '  <span class="c-accent">help</span>      show this list\n' +
-            '  <span class="c-accent">ls</span>        list what&rsquo;s here\n' +
+            '  <span class="c-accent">ls</span>        list what&rsquo;s here (try: ls --projects, ls --tracks)\n' +
             '  <span class="c-accent">about</span>     who is surbitonix\n' +
             '  <span class="c-accent">projects</span>  list projects\n' +
             '  <span class="c-accent">cd</span> &lt;name&gt;  open a project (try: cd jyra)\n' +
@@ -216,8 +217,24 @@
             '  <span class="c-accent">clear</span>     wipe the screen'
         );
       },
-      ls() {
-        print('kubefx/   jyra/   about.txt   contact.txt', 'c-accent');
+      ls(args) {
+        const flag = (args[0] || '').toLowerCase();
+        if (flag === '--projects') {
+          print('kubefx/   jyra/   linuxmaster/', 'c-accent');
+          return;
+        }
+        if (flag === '--tracks') {
+          print(
+            'codeforge/linuxmaster/   codeforge/fix-protocol/   ' +
+              'codeforge/python/   codeforge/sql/',
+            'c-accent'
+          );
+          return;
+        }
+        print(
+          'codeforge/   kubefx/   jyra/   linuxmaster/   about.txt   contact.txt',
+          'c-accent'
+        );
       },
       about() {
         print(
@@ -379,7 +396,7 @@
     body.addEventListener('click', () => input!.focus());
 
     print(
-      'surbitonix hell — type <span class="c-accent">help</span> to get started.',
+      'surbitonix (s)hell — type <span class="c-accent">help</span> to get started.',
       'c-muted'
     );
   }
